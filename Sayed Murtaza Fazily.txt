@@ -1,0 +1,217 @@
+Laravel Beginner Lab
+
+Name: sayed murtaza fazily
+Student ID: Q07002744
+
+
+Task 1 - Prepare PHP and Composer
+
+1. Check PHP:
+php -v
+
+2. Check Composer:
+composer --version
+
+PHP should be version 8.2 or newer.
+
+
+Task 2 - Create Laravel Project
+
+1. Open Command Prompt.
+
+2. Go to the user folder:
+cd /d "%USERPROFILE%"
+
+3. Create the Laravel project:
+composer create-project laravel/laravel laravel-lab "12.*"
+
+4. Enter the project:
+cd laravel-lab
+
+5. Check Laravel version:
+php artisan --version
+
+
+Task 3 - Create Home Page
+
+Create this file:
+
+resources/views/home.blade.php
+
+Put this code inside:
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My First Laravel Page</title>
+</head>
+<body>
+    <h1>Welcome to My Laravel Website</h1>
+    <p>Student: sayed murtaza fazily</p>
+    <p>Course: {{ $course }}</p>
+    <p>This is my first Blade view.</p>
+
+    <a href="{{ url('/about') }}">About Me</a>
+</body>
+</html>
+
+
+Task 4 - Create Home Route
+
+Open:
+
+routes/web.php
+
+Replace the contents with:
+
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return view('home', [
+        'course' => 'Web Information Systems'
+    ]);
+});
+
+The / route opens the home page and sends the course value to the Blade view.
+
+
+Task 5 - Configure and Run Laravel
+
+Open the .env file.
+
+Make sure these settings are:
+
+SESSION_DRIVER=file
+CACHE_STORE=file
+
+Save the file.
+
+Then run:
+
+php artisan config:clear
+
+php artisan serve
+
+Open this address in the browser:
+
+http://127.0.0.1:8000
+
+
+Task 6 - Create About Page
+
+Create:
+
+resources/views/about.blade.php
+
+Put this code inside:
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>About Me</title>
+</head>
+<body>
+    <h1>About Me</h1>
+
+    <p>Name: sayed murtaza fazily</p>
+    <p>Student ID: Q07002744</p>
+
+    <p>I want to learn more about web development in this course.</p>
+    <p>I also want to improve my Laravel and web programming skills.</p>
+
+    <a href="{{ url('/') }}">Back to Home</a>
+</body>
+</html>
+
+
+Task 7 - Add About Route
+
+Open:
+
+routes/web.php
+
+Keep the existing home route and add:
+
+Route::get('/about', function () {
+    return view('about');
+});
+
+
+Final routes/web.php:
+
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return view('home', [
+        'course' => 'Web Information Systems'
+    ]);
+});
+
+Route::get('/about', function () {
+    return view('about');
+});
+
+
+Testing
+
+1. Open:
+
+http://127.0.0.1:8000
+
+2. Check the home page.
+
+3. Click "About Me".
+
+4. Check:
+
+http://127.0.0.1:8000/about
+
+5. Click "Back to Home".
+
+Both links should work.
+
+
+Quick Understanding Questions
+
+1. In which folder do you place Blade view files?
+
+Answer:
+resources/views
+
+
+2. Which file contains the routes?
+
+Answer:
+routes/web.php
+
+
+3. What does return view('home') do?
+
+Answer:
+It loads the home.blade.php view.
+
+
+4. What is the difference between /about and about.blade.php?
+
+Answer:
+/about is the URL route.
+about.blade.php is the Blade view file used to display the page.
+
+
+Completion Checklist
+
+[✓] PHP and Composer work.
+[✓] Laravel project created.
+[✓] Home page created.
+[✓] / route created.
+[✓] Course value displayed.
+[✓] About page created.
+[✓] /about route created.
+[✓] Home and About links added.
+[✓] Both pages tested.
