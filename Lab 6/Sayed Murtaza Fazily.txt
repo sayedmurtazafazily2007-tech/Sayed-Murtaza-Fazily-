@@ -1,0 +1,196 @@
+==================================================
+  LARAVEL 12 AUTHENTICATION LAB (LAB-06)
+  IT DEPARTMENT | WEB DEVELOPMENT
+==================================================
+  Class date: 19 October 2026
+  Student name: Sayed Murtaza Fazily
+  Father name: Sayed abdulzahir
+==================================================
+
+1. DATABASE CONFIGURATION (.env)
+--------------------------------------------------
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=it_auth_lab
+DB_USERNAME=root
+DB_PASSWORD=
+SESSION_DRIVER=file
+
+
+2. ROUTES (routes/web.php)
+--------------------------------------------------
+<?php
+
+use App\Http\Controllers\AuthController;
+use Illuminate\Support\Facades\Route;
+
+Route::redirect('/', '/login');
+
+Route::middleware('guest')->group(function () {
+    Route::view('/register', 'auth.register')->name('register');
+    Route::post('/register', [AuthController::class, 'register'])->name('register.store');
+
+    Route::view('/login', 'auth.login')->name('login');
+    Route::post('/login', [AuthController::class, 'login'])->name('login.store');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+});
+
+
+3. BLADE VIEWS
+--------------------------------------------------
+--- File: resources/views/auth/register.blade.php ---
+<h1>Create an account</h1>
+
+@if ($errors->any())
+<ul>
+    @foreach ($errors->all() as $error)
+        <li>{{ $error }}</li>
+    @endforeach
+</ul>
+@endif
+
+@if (session('success'))
+<p>{{ session('success') }}</p>
+@endif
+
+<form method="POST" action="{{ route('register.store') }}">
+    @csrf
+   
+    <label for="name">Full name</label>
+    <input id="name" name="name" type="text" value="{{ old('name') }}" required>
+
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" value="{{ old('email') }}" required>
+
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" required>
+
+    <label for="password_confirmation">Confirm Password</label>
+    <input id="password_confirmation" name="password_confirmation" type="password" required>
+
+    <button type="submit">Register</button>
+</form>
+
+<a href="{{ route('login') }}">Already have an account?</a>
+
+
+--- File: resources/views/auth/login.blade.php ---
+<h1>Sign in</h1>
+
+@if ($errors->any())
+<ul>
+    @foreach ($errors->all() as $error)
+        <li>{{ $error }}</li>
+    @endforeach
+</ul>
+@endif
+
+@if (session('success'))
+<p>{{ session('success') }}</p>
+@endif
+
+<form method="POST" action="{{ route('login.store') }}">
+    @csrf
+
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" value="{{ old('email') }}" required>
+
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" required>
+
+    <button type="submit">Login</button>
+</form>
+
+<a href="{{ route('register') }}">Don't have an account?</a>
+
+
+--- File: resources/views/dashboard.blade.php ---
+<h1>IT Student Portal</h1>
+<p>Welcome, {{ auth()->user()->name }}.</p>
+<p>Email: {{ auth()->user()->email }}.</p>
+
+<form method="POST" action="{{ route('logout') }}">
+    @csrf
+    <button type="submit">Logout</button>
+</form>
+
+
+4. CONTROLLER (app/Http/Controllers/AuthController.php)
+--------------------------------------------------
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+
+class AuthController extends Controller
+{
+    public function register(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = new User();
+        $user->name = $data['name'];
+        $user->email = $data['email'];
+        $user->password = Hash::make($data['password']);
+        $user->save();
+
+        return redirect()->route('login')->with('success', 'Account created. Please log in.');
+    }
+
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string',
+        ]);
+
+        $accepted = Auth::attempt($credentials);
+
+        if (!$accepted) {
+            return back()->withErrors([
+                'email' => 'Email or password is incorrect.',
+            ])->onlyInput('email');
+        }
+
+        $request->session()->regenerate();
+
+        return redirect()->intended(route('dashboard'));
+    }
+
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login');
+    }
+}
+
+
+5. CONCEPTUAL QUESTIONS & ANSWERS
+--------------------------------------------------
+1. Why do we use Hash::make() when saving a new password?
+Answer: We use Hash::make() to securely hash passwords before storing them in the database. Storing plain-text passwords is a major security risk. Hashing is a one-way transformation that ensures passwords cannot be reverse-engineered or exposed, even if the database is compromised.
+
+2. How does auth middleware protect the dashboard?
+Answer: The auth middleware checks whether the incoming HTTP request is made by an authenticated (logged-in) user. If the user is authenticated, it allows the request to proceed to the dashboard. If the user is a guest (not logged in), the middleware intercepts the request and automatically redirects them to the login page.
+
+3. What does @csrf add to a form?
+Answer: The @csrf directive generates a hidden HTML input field containing a unique, secret CSRF token associated with the user's current session. When the form is submitted, Laravel verifies this token to protect the application from Cross-Site Request Forgery (CSRF) attacks, ensuring the request genuinely originated from the authenticated user within the application.
